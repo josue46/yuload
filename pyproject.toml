@@ -1,0 +1,17 @@
+[project]
+name = "yuload"
+version = "1.0.0"
+description = "YouTube video downloader with modern GUI and subtitle support"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "pytubefix>=10.3.8",
+    "pillow>=10.0.0",
+    "httpx>=0.25.0",
+    "pyinstaller>=6.19.0",
+]
+
+[tool.poetry.dev-dependencies]
+black = "^23.0"
+flake8 = "^6.0"
+mypy = "^1.0"
