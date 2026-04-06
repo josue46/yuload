@@ -99,6 +99,10 @@ class Downloader:
             output_dir = Path(output_path)
             output_dir.mkdir(parents=True, exist_ok=True)
             
+            # Utiliser TEMP_DIR pour les fichiers temporaires
+            temp_dir = Config.TEMP_DIR
+            temp_dir.mkdir(parents=True, exist_ok=True)
+            
             # Obtenir les informations vidéo
             video_info = self.handler.current_video
             safe_title = self._make_safe_filename(video_info.title)
@@ -113,7 +117,7 @@ class Downloader:
             
             video_file = self._download_stream(
                 video_stream,
-                output_dir,
+                temp_dir,  # Utiliser TEMP_DIR pour les fichiers temporaires
                 f"{safe_title}_video.mp4",
                 progress_callback,
                 "vidéo"
@@ -134,7 +138,7 @@ class Downloader:
             
             audio_file = self._download_stream(
                 audio_stream,
-                output_dir,
+                temp_dir,  # Utiliser TEMP_DIR pour les fichiers temporaires
                 f"{safe_title}_audio.mp4",
                 progress_callback,
                 "audio"
@@ -152,7 +156,7 @@ class Downloader:
             final_file = self._merge_with_ffmpeg(
                 video_file,
                 audio_file,
-                output_dir,
+                output_dir,  # Fichier final dans output_dir
                 safe_title
             )
             
