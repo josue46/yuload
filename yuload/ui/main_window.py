@@ -14,7 +14,7 @@ from ..core.downloader import Downloader
 from .styles import Colors, StyleManager
 from .widgets import (
     ModernButton, AnimatedProgressBar, VideoInfoFrame, 
-    QualitySelector, SubtitleSelector, StatusBar
+    QualitySelector, SubtitleSelector, StatusBar, LoadingSpinner
 )
 
 logger = setup_logger(__name__)
@@ -142,6 +142,12 @@ class MainWindow(tk.Tk):
             height=35
         )
         self.load_button.grid(row=0, column=2, padx=10)
+        
+        # Spinner de chargement (masqué au démarrage)
+        self.loading_spinner = LoadingSpinner(url_frame, size=30)
+        self.loading_spinner.grid(row=0, column=3, padx=10)
+        self.loading_spinner.grid_remove()  # Masquer initialement
+    
     
     def _create_download_section(self, parent):
         """Create download section"""
@@ -242,6 +248,11 @@ class MainWindow(tk.Tk):
         
         self.is_loading = True
         self.load_button.config(state="disabled")
+        
+        # Afficher et démarrer le spinner de chargement bleu
+        self.loading_spinner.grid()
+        self.loading_spinner.start_loading()
+        
         self.status_bar.show_message("Chargement des informations vidéo...", "info")
         
         # Charger la vidéo dans un thread séparé pour ne pas bloquer l'interface
@@ -286,6 +297,13 @@ class MainWindow(tk.Tk):
         finally:
             self.is_loading = False
             self.load_button.config(state="normal")
+            
+            # Afficher la coche verte et masquer le spinner après 500ms
+            if video_info:  # Si chargement réussi
+                self.after(500, self.loading_spinner.complete_loading)
+                self.after(2000, self.loading_spinner.grid_remove)  # Masquer après 2 secondes
+            else:  # Si erreur
+                self.loading_spinner.grid_remove()
     
     def _on_quality_selected(self, quality: str):
         """Handle quality selection"""

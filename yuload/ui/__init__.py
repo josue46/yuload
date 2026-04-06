@@ -1,4 +1,4 @@
-"""UI Module - User Interface components"""
+"""Module UI - Composants de l'interface utilisateur"""
 
 from .main_window import MainWindow
 

@@ -133,6 +133,96 @@ class AnimatedProgressBar(tk.Canvas):
                                 fill="white", outline="", stipple="gray50")
 
 
+class LoadingSpinner(tk.Canvas):
+    """Spinner de chargement animé avec couleur dynamique"""
+    
+    def __init__(self, parent, size=30, color=Colors.ACCENT, **kwargs):
+        """
+        Initialise le spinner de chargement
+        
+        Args:
+            parent: Widget parent
+            size: Taille du spinner en pixels
+            color: Couleur du spinner (bleu par défaut)
+        """
+        super().__init__(parent, width=size, height=size, bg=Colors.PRIMARY, 
+                        highlightthickness=0, **kwargs)
+        
+        self.size = size
+        self.color = color
+        self.animation_frame = 0
+        self.is_loading = False
+        self.is_complete = False
+    
+    def start_loading(self):
+        """Démarre l'animation de chargement en bleu"""
+        self.is_loading = True
+        self.is_complete = False
+        self.color = Colors.ACCENT  # Bleu
+        self.animate()
+    
+    def complete_loading(self):
+        """Marque comme chargement complété et change la couleur en vert"""
+        self.is_loading = False
+        self.is_complete = True
+        self.color = Colors.SUCCESS  # Vert
+        self.draw_checkmark()
+    
+    def animate(self):
+        """Anime le spinner"""
+        if not self.is_loading:
+            return
+        
+        self.draw_spinner()
+        self.animation_frame = (self.animation_frame + 1) % 12
+        # Appeler la prochaine animation après 100ms
+        self.after(100, self.animate)
+    
+    def draw_spinner(self):
+        """Dessine un spinner animé"""
+        self.delete("all")
+        
+        center_x = self.size / 2
+        center_y = self.size / 2
+        radius = self.size / 3
+        
+        # Dessiner 12 segments du spinner
+        for i in range(12):
+            angle = (i + self.animation_frame) * 30
+            import math
+            x1 = center_x + radius * math.cos(math.radians(angle))
+            y1 = center_y + radius * math.sin(math.radians(angle))
+            x2 = center_x + radius * math.cos(math.radians(angle + 20))
+            y2 = center_y + radius * math.sin(math.radians(angle + 20))
+            
+            # Opacité dégradée pour l'effet de rotation
+            opacity = int(100 + (i * 20) % 155)
+            self.create_line(x1, y1, x2, y2, fill=self.color, width=3)
+    
+    def draw_checkmark(self):
+        """Dessine une coche verte"""
+        self.delete("all")
+        
+        center_x = self.size / 2
+        center_y = self.size / 2
+        radius = self.size / 3
+        
+        # Cercle vert
+        self.create_oval(
+            center_x - radius, center_y - radius,
+            center_x + radius, center_y + radius,
+            fill=self.color, outline=self.color
+        )
+        
+        # Coche blanche
+        self.create_line(
+            center_x - radius/3, center_y,
+            center_x - radius/6, center_y + radius/4,
+            center_x + radius/3, center_y - radius/4,
+            fill='white', width=2
+        )
+
+
 class VideoInfoFrame(tk.Frame):
     """Frame to display video information"""
     

@@ -1,19 +1,19 @@
-# 🎬 Yuload - YouTube Video Downloader
+# Yuload - YouTube Video Downloader
 
 A modern, professional YouTube video downloader with a sleek GUI built with Tkinter. Download videos in multiple qualities, with optional subtitle support, all from an elegant interface.
 
-## ✨ Features
+## Features
 
-- 🎥 **Download YouTube Videos** - Download any public YouTube video with a simple URL paste
-- 🎯 **Multiple Quality Options** - Choose from all available video qualities (1080p, 720p, 480p, 360p, 144p, etc.)
-- 🔊 **Audio Integration** - Automatic video and audio merging for complete download
-- 📝 **Subtitle Support** - Download and include video subtitles in multiple languages
-- 📊 **Progress Tracking** - Animated progress bar with real-time download statistics
-- 🎨 **Modern UI** - Professional, modern interface with dark theme and smooth animations
-- 🛡️ **Error Handling** - Comprehensive error handling with user-friendly messages
-- 📁 **Easy Access** - Quick access to downloaded files from the application
+- **Download YouTube Videos** - Download any public YouTube video with a simple URL paste
+- **Multiple Quality Options** - Choose from all available video qualities (1080p, 720p, 480p, 360p, 144p, etc.)
+- **Audio Integration** - Automatic video and audio merging for complete download
+- **Subtitle Support** - Download and include video subtitles in multiple languages
+- **Progress Tracking** - Animated progress bar with real-time download statistics
+- **Modern UI** - Professional, modern interface with dark theme and smooth animations
+- **Error Handling** - Comprehensive error handling with user-friendly messages
+- **Easy Access** - Quick access to downloaded files from the application
 
-## 🏗️ Architecture
+## Architecture
 
 The application follows a modular, scalable architecture:
 
@@ -32,13 +32,13 @@ yuload/
     └── validators.py         # Input validation
 ```
 
-## 📋 Requirements
+## Requirements
 
 - Python 3.9+ (required by pytubefix)
 - Tkinter (usually included with Python)
 - FFmpeg (for audio merging - optional, falls back to video-only if not available)
 
-## 🚀 Installation
+## Installation
 
 ### 1. Clone or Download the Project
 ```bash
@@ -76,7 +76,7 @@ brew install ffmpeg
 **Windows:**
 Download from [ffmpeg.org](https://ffmpeg.org/download.html) and add to PATH
 
-## 🎯 Usage
+## Usage
 
 ### Start the Application
 ```bash
@@ -91,7 +91,7 @@ python main.py
 5. **Download** - Click "Download Video" and select your preferred folder
 6. **Access Downloads** - Click "📁 Open Folder" to quickly access downloaded files
 
-## ⚙️ Configuration
+## Configuration
 
 Configuration can be modified in `yuload/utils/config.py`:
 
@@ -101,7 +101,7 @@ Configuration can be modified in `yuload/utils/config.py`:
 - **Maximum Retries**: 3
 - **Chunk Size**: 1MB
 
-## 🏆 Key Components
+## Key Components
 
 ### YouTubeHandler
 Manages all interactions with YouTube:
@@ -126,7 +126,7 @@ Professional interface featuring:
 - Status messages
 - Real-time feedback
 
-## 🎨 Design Features
+## Design Features
 
 - **Modern Dark Theme** - Easy on the eyes with professional colors
 - **Smooth Animations** - Animated progress bar and hover effects
@@ -135,7 +135,7 @@ Professional interface featuring:
 - **Clear Information** - Video metadata clearly displayed
 - **Intuitive Controls** - Logical workflow and clear visual hierarchy
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### "Invalid YouTube URL"
 - Ensure you're using a valid YouTube URL
@@ -154,7 +154,7 @@ Professional interface featuring:
 - Normal for large files - progress is updated in 1MB chunks
 - Download is still in progress in the background
 
-## 📊 Logging
+## Logging
 
 Logs are saved to `~/.yuload/logs/` with:
 - Daily log files
@@ -162,7 +162,7 @@ Logs are saved to `~/.yuload/logs/` with:
 - Detailed error information
 - Debug information for troubleshooting
 
-## 🔧 Development
+## Development
 
 ### Code Structure
 - **Modular Design**: Each component has a single responsibility
@@ -181,15 +181,15 @@ python main.py
 - Create new UI widgets by extending `widgets.py`
 - Add configuration options in `config.py`
 
-## 📄 License
+## License
 
 This project is provided as-is for personal use.
 
-## ⚠️ Disclaimer
+## Disclaimer
 
 Yuload is designed for downloading videos you have permission to download. Respect copyright laws and YouTube's Terms of Service. The authors are not responsible for misuse of this tool.
 
-## 🤝 Contributing
+## Contributing
 
 Suggestions and improvements are welcome! Feel free to:
 - Report bugs
@@ -197,7 +197,7 @@ Suggestions and improvements are welcome! Feel free to:
 - Improve documentation
 - Optimize code
 
-## 📞 Support
+## Support
 
 For issues or questions:
 1. Check the troubleshooting section
@@ -207,4 +207,4 @@ For issues or questions:
 
 ---
 
-**Enjoy downloading videos with Yuload!** 🎉
+**Enjoy downloading videos with Yuload!**

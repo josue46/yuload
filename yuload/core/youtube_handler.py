@@ -58,22 +58,26 @@ class YouTubeHandler:
     
     def get_available_streams(self) -> Optional[List[Dict]]:
         """
-        Get all available video streams with different qualities
+        Récupère tous les streams vidéo disponibles avec différentes qualités
         
         Returns:
-            List of stream info dictionaries or None if error
+            Liste de dictionnaires avec info des streams ou None si erreur
         """
         if not self.current_video:
-            logger.error("No video loaded")
+            logger.error("Aucune vidéo chargée")
             return None
         
         try:
             streams = self.current_video.streams.filter(progressive=False, file_extension='mp4')
             
+            # Filtrer et trier les streams : exclure ceux sans résolution définie
+            valid_streams = [s for s in streams if s.resolution]
+            
             stream_list = []
             seen_qualities = set()
             
-            for stream in sorted(streams, key=lambda x: int(x.resolution[:-1]), reverse=True):
+            # Trier par résolution (du plus haut au plus bas en pixel)
+            for stream in sorted(valid_streams, key=lambda x: int(x.resolution[:-1]), reverse=True):
                 quality = stream.resolution
                 
                 if quality not in seen_qualities:
@@ -118,34 +122,42 @@ class YouTubeHandler:
     
     def get_captions(self) -> Optional[List[Dict]]:
         """
-        Get available captions/subtitles
+        Récupère les sous-titres/captions disponibles
         
         Returns:
-            List of caption info dictionaries or None
+            Liste de dictionnaires avec info des captions ou liste vide
         """
         if not self.current_video:
-            logger.error("No video loaded")
+            logger.error("Aucune vidéo chargée")
             return None
         
         try:
             captions_dict = self.current_video.captions
             if not captions_dict:
-                logger.info("No captions available for this video")
+                logger.info("Aucun sous-titre disponible pour cette vidéo")
                 return []
             
             captions_list = []
             for caption in captions_dict:
-                captions_list.append({
+                # Construire l'info du caption avec gestion sécurisée des attributs
+                caption_info = {
                     'language': caption.name,
                     'code': caption.code,
-                    'is_generated': caption.is_generated,
-                })
+                }
+                
+                # Vérifier si l'attribut is_generated existe (optionnel selon la version pytubefix)
+                if hasattr(caption, 'is_generated'):
+                    caption_info['is_generated'] = caption.is_generated
+                else:
+                    caption_info['is_generated'] = False
+                
+                captions_list.append(caption_info)
             
-            logger.info(f"Found {len(captions_list)} available captions")
+            logger.info(f"Trouvé {len(captions_list)} sous-titre(s) disponibles")
             return captions_list
             
         except Exception as e:
-            logger.error(f"Error getting captions: {e}")
+            logger.error(f"Erreur lors de la récupération des sous-titres: {e}")
             return []
     
     def get_stream_by_quality(self, quality: str):
