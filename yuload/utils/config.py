@@ -1,8 +1,8 @@
 """Module de configuration pour Yuload"""
 
 import os
+import platform
 from pathlib import Path
-
 
 class Config:
     """Classe de configuration centralisée de l'application"""
@@ -14,6 +14,8 @@ class Config:
     DOWNLOAD_DIR = APP_DIR / "downloads"
     # Dossier pour les fichiers journaux (logs)
     LOG_DIR = APP_DIR / "logs"
+    # Dossier pour les fichiers temporaires (vidéo/audio avant fusion)
+    TEMP_DIR = APP_DIR / "temp"
     
     @staticmethod
     def init_directories():
@@ -24,6 +26,7 @@ class Config:
         Config.APP_DIR.mkdir(parents=True, exist_ok=True)
         Config.DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
         Config.LOG_DIR.mkdir(parents=True, exist_ok=True)
+        Config.TEMP_DIR.mkdir(parents=True, exist_ok=True)
     
     # ======================== CONFIGURATION DE L'INTERFACE ========================
     # Dimensions de la fenêtre principale (largeur x hauteur en pixels)
@@ -61,3 +64,29 @@ class Config:
     # ======================== DÉLAIS D'EXPIRATION (TIMEOUTS) ========================
     REQUEST_TIMEOUT = 10       # Délai pour les requêtes HTTP (10 secondes)
     DOWNLOAD_TIMEOUT = 300     # Délai pour les téléchargements (5 minutes)
+    
+    # ======================== CONFIGURATION FFMPEG ========================
+    # FFmpeg est utilisé pour fusionner vidéo et audio sans perte de qualité
+    USE_FFMPEG_MERGE = True    # Activer la fusion avec FFmpeg
+    FFMPEG_PRESET = "copy"     # "copy" = ultra rapide, pas de réencodage
+    FFMPEG_AUDIO_CODEC = "aac" # Codec audio par défaut
+    
+    # ======================== INFORMATION SYSTÈME ========================
+    # Déterminer le système d'exploitation pour la compatibilité multiplateforme
+    SYSTEM_PLATFORM = platform.system()  # "Windows", "Darwin" (macOS), "Linux"
+    IS_WINDOWS = SYSTEM_PLATFORM == "Windows"
+    IS_MACOS = SYSTEM_PLATFORM == "Darwin"
+    IS_LINUX = SYSTEM_PLATFORM == "Linux"
+    
+    @staticmethod
+    def get_temp_file_path(filename: str) -> Path:
+        """
+        Retourne le chemin complet pour un fichier temporaire multiplateforme.
+        
+        Args:
+            filename: Nom du fichier temporaire
+            
+        Returns:
+            Chemin complet du fichier temporaire
+        """
+        return Config.TEMP_DIR / filename

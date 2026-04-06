@@ -1,0 +1,5 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/home/luis/Projects/yuload/.venv/bin/python": true
+    }
+}

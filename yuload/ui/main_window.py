@@ -352,7 +352,8 @@ class MainWindow(tk.Tk):
             subtitle_code=subtitle_code,
             progress_callback=self._on_progress,
             completion_callback=self._on_download_complete,
-            error_callback=self._on_download_error
+            error_callback=self._on_download_error,
+            status_callback=self._on_status_update
         )
     
     def _on_cancel_click(self):
@@ -374,6 +375,11 @@ class MainWindow(tk.Tk):
             
             # Animate progress bar
             self.progress_bar.draw_progress()
+    
+    def _on_status_update(self, message: str):
+        """Handle status update from downloader"""
+        self.status_bar.show_message(message, "info")
+        logger.info(f"Download status: {message}")
     
     def _on_download_complete(self, filepath: str):
         """Handle download completion"""
