@@ -274,42 +274,49 @@ class VideoInfoFrame(tk.Frame):
 
 
 class QualitySelector(tk.Frame):
-    """Widget to select video quality"""
+    """Widget pour sélectionner la qualité vidéo"""
     
     def __init__(self, parent, on_select: Callable = None, **kwargs):
-        """Initialize quality selector"""
+        """Initialise le sélecteur de qualité"""
         super().__init__(parent, bg=Colors.SECONDARY, **kwargs)
         
         self.on_select = on_select
         self.selected_quality = tk.StringVar()
         self.streams = []
+        # Dictionnaire pour stocker les références aux boutons de qualité
+        self.quality_buttons = {}
+        self.selected_button = None
         
-        # Label
-        label = tk.Label(self, text="Select Quality:", 
+        # Étiquette pour le titre
+        label = tk.Label(self, text="Sélectionner la Qualité:", 
                         font=StyleManager.default_font(10, bold=True),
                         fg=Colors.TEXT_PRIMARY, bg=Colors.SECONDARY)
         label.pack(pady=8, padx=10, anchor="w")
         
-        # Frame for quality buttons
+        # Frame pour les boutons de qualité
         self.buttons_frame = tk.Frame(self, bg=Colors.SECONDARY)
         self.buttons_frame.pack(pady=5, padx=10, fill="x")
     
     def set_streams(self, streams: list):
-        """Set available streams"""
+        """Définit les streams disponibles"""
         self.streams = streams
         
-        # Clear existing buttons
+        # Effacer les boutons existants
         for widget in self.buttons_frame.winfo_children():
             widget.destroy()
         
+        # Réinitialiser les références aux boutons
+        self.quality_buttons = {}
+        self.selected_button = None
+        
         if not streams:
-            label = tk.Label(self.buttons_frame, text="No streams available",
+            label = tk.Label(self.buttons_frame, text="Aucun stream disponible",
                             fg=Colors.TEXT_SECONDARY, bg=Colors.SECONDARY)
             label.pack(pady=5)
             return
         
-        # Create quality buttons
-        for i, stream in enumerate(streams[:8]):  # Limit to 8 qualities
+        # Créer les boutons de qualité avec références stockées
+        for i, stream in enumerate(streams[:8]):  # Limiter à 8 qualités
             quality = stream['quality']
             filesize = stream.get('filesize', 0)
             size_mb = filesize / (1024*1024) if filesize else 0
@@ -327,16 +334,41 @@ class QualitySelector(tk.Frame):
                 command=lambda q=quality: self._select_quality(q)
             )
             btn.pack(side="left", padx=5, pady=5)
+            
+            # Stocker la référence au bouton pour modification ultérieure
+            self.quality_buttons[quality] = btn
     
     def _select_quality(self, quality: str):
-        """Select quality"""
+        """Sélectionne une qualité et met à jour les couleurs"""
         self.selected_quality.set(quality)
+        
+        # Restaurer la couleur du bouton précédent (s'il existe)
+        if self.selected_button and self.selected_button in self.quality_buttons.values():
+            previous_quality = [q for q, btn in self.quality_buttons.items() if btn == self.selected_button][0]
+            self.quality_buttons[previous_quality].config(bg=Colors.TERTIARY)
+        
+        # Colorer le nouveau bouton sélectionné en bleu (couleur accent)
+        if quality in self.quality_buttons:
+            self.selected_button = self.quality_buttons[quality]
+            self.selected_button.config(bg=Colors.ACCENT)
+        
+        # Appeler le callback si défini
         if self.on_select:
             self.on_select(quality)
     
     def get_selected(self) -> str:
-        """Get selected quality"""
+        """Récupère la qualité sélectionnée"""
         return self.selected_quality.get()
+    
+    def disable_buttons(self):
+        """Désactive tous les boutons de qualité"""
+        for btn in self.quality_buttons.values():
+            btn.config(state="disabled")
+    
+    def enable_buttons(self):
+        """Active tous les boutons de qualité"""
+        for btn in self.quality_buttons.values():
+            btn.config(state="normal")
 
 
 class SubtitleSelector(tk.Frame):

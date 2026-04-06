@@ -333,14 +333,15 @@ class MainWindow(tk.Tk):
         include_subtitle = self.subtitle_selector.should_include()
         subtitle_code = self.subtitle_selector.get_selected_code() if include_subtitle else None
         
-        # Update UI for download
+        # Mise à jour de l'interface pour le téléchargement
         self.download_button.pack_forget()
         self.cancel_button.pack(side="left", padx=10)
         self.load_button.config(state="disabled")
         self.url_entry.config(state="disabled")
-        self.quality_selector.config(state="disabled")
+        # Désactiver les boutons de qualité via la méthode appropriée
+        self.quality_selector.disable_buttons()
         
-        self.status_bar.show_message("Downloading...", "info")
+        self.status_bar.show_message("Téléchargement en cours...", "info")
         self.progress_bar.set_progress(0)
         
         # Start download
@@ -394,15 +395,16 @@ class MainWindow(tk.Tk):
         messagebox.showerror("Download Error", error_message)
     
     def _reset_download_ui(self):
-        """Reset download UI to initial state"""
+        """Réinitialise l'interface de téléchargement à son état initial"""
         self.cancel_button.pack_forget()
         self.download_button.pack(side="left", padx=10)
         self.load_button.config(state="normal")
         self.url_entry.config(state="normal")
-        self.quality_selector.config(state="normal")
+        # Réactiver les boutons de qualité via la méthode appropriée
+        self.quality_selector.enable_buttons()
         self.progress_bar.set_progress(0)
         self.progress_label.config(text="0%")
-        self.status_bar.show_message("Ready", "info")
+        self.status_bar.show_message("Prêt", "info")
     
     def _on_browse_folder(self):
         """Open downloads folder"""
