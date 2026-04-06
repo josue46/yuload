@@ -29,6 +29,10 @@ class Downloader:
         self.current_thread: Optional[threading.Thread] = None
         # Références aux fichiers temporaires pour nettoyage
         self.temp_files = []
+        
+        # Suivi de la progression par étape
+        self.current_phase = "idle"  # idle, video, audio, merge
+        self.phase_progress_callback: Optional[Callable] = None
     
     def download_video(
         self,
@@ -49,7 +53,7 @@ class Downloader:
             output_path: Chemin du répertoire de sortie
             include_subtitle: Inclure les sous-titres
             subtitle_code: Code de langue pour les sous-titres
-            progress_callback: Callback pour la progression
+            progress_callback: Callback pour la progression (current, total)
             completion_callback: Callback au téléchargement complet
             error_callback: Callback pour les erreurs
             status_callback: Callback pour les mises à jour de statut
@@ -64,6 +68,13 @@ class Downloader:
                 error_callback(error_msg)
             return False
         
+        # Stocker le callback de progression pour l'utiliser dans le callback global
+        self.phase_progress_callback = progress_callback
+        
+        # Enregistrer le callback global de progression avec pytubefix
+        # Ce callback sera appelé pour chaque chunk de tous les streams
+        self.handler.youtube.register_on_progress_callback(self._on_pytubefix_progress)
+        
         # Démarrer le téléchargement dans un thread séparé (ne pas bloquer Tkinter)
         self.is_downloading = True
         self.current_thread = threading.Thread(
@@ -73,7 +84,6 @@ class Downloader:
                 output_path,
                 include_subtitle,
                 subtitle_code,
-                progress_callback,
                 completion_callback,
                 error_callback,
                 status_callback,
@@ -89,7 +99,6 @@ class Downloader:
         output_path: str,
         include_subtitle: bool,
         subtitle_code: Optional[str],
-        progress_callback: Optional[Callable],
         completion_callback: Optional[Callable],
         error_callback: Optional[Callable],
         status_callback: Optional[Callable],
@@ -110,23 +119,17 @@ class Downloader:
             
             # ÉTAPE 1: Télécharger le flux vidéo (sans audio)
             self._update_status(status_callback, "Téléchargement de la vidéo...")
+            self.current_phase = "video"
             logger.info(f"Démarrage du téléchargement vidéo: {quality}")
             
             video_stream = self.handler.get_stream_by_quality(quality)
             if not video_stream:
                 raise ValueError(f"Impossible de trouver un stream pour la qualité {quality}")
             
-            # Wrapper pour convertir progression 0-33%
-            def video_progress_wrapper(current, total):
-                progress_ratio = (current / total) * 33 if total > 0 else 0
-                if progress_callback:
-                    progress_callback(progress_ratio, 100)
-            
             video_file = self._download_stream(
                 video_stream,
                 temp_dir,
                 f"{safe_title}_video.mp4",
-                video_progress_wrapper,
                 "vidéo"
             )
             
@@ -137,23 +140,17 @@ class Downloader:
             
             # ÉTAPE 2: Télécharger le flux audio (meilleure qualité)
             self._update_status(status_callback, "Téléchargement de l'audio...")
+            self.current_phase = "audio"
             logger.info("Démarrage du téléchargement audio")
             
             audio_stream = self.handler.get_audio_stream()
             if not audio_stream:
                 raise Exception("Impossible de trouver un flux audio")
             
-            # Wrapper pour convertir progression 33-66%
-            def audio_progress_wrapper(current, total):
-                progress_ratio = 33 + ((current / total) * 33) if total > 0 else 33
-                if progress_callback:
-                    progress_callback(progress_ratio, 100)
-            
             audio_file = self._download_stream(
                 audio_stream,
                 temp_dir,
                 f"{safe_title}_audio.mp4",
-                audio_progress_wrapper,
                 "audio"
             )
             
@@ -164,20 +161,14 @@ class Downloader:
             
             # ÉTAPE 3: Fusionner vidéo et audio avec FFmpeg
             self._update_status(status_callback, "Finalisation de la conversion vidéo...")
+            self.current_phase = "merge"
             logger.info("Fusion vidéo et audio avec FFmpeg")
-            
-            # Wrapper pour convertir progression 66-100% pendant fusion
-            def merge_progress_wrapper(progress_pct):
-                merge_progress = 66 + (progress_pct * 0.34)  # 66% à 100%
-                if progress_callback:
-                    progress_callback(merge_progress, 100)
             
             final_file = self._merge_with_ffmpeg(
                 video_file,
                 audio_file,
                 output_dir,
-                safe_title,
-                merge_progress_wrapper
+                safe_title
             )
             
             if not final_file:
@@ -194,8 +185,8 @@ class Downloader:
                 )
             
             # Succès - set to 100%
-            if progress_callback:
-                progress_callback(100, 100)
+            if self.phase_progress_callback:
+                self.phase_progress_callback(100, 100)
             
             # Nettoyer les fichiers temporaires et appeler le callback
             self._cleanup_temp_files()
@@ -216,6 +207,36 @@ class Downloader:
         
         finally:
             self.is_downloading = False
+            self.current_phase = "idle"
+    
+    def _on_pytubefix_progress(self, stream, chunk: bytes, bytes_remaining: int):
+        """
+        Callback appelé par pytubefix à chaque chunk téléchargé
+        
+        Args:
+            stream: Objet stream
+            chunk: Bytes du chunk
+            bytes_remaining: Bytes restants à télécharger
+        """
+        if not self.phase_progress_callback:
+            return
+        
+        total_size = stream.filesize
+        bytes_downloaded = total_size - bytes_remaining
+        
+        # Mapper la progression selon la phase actuelle
+        if self.current_phase == "video":
+            # Phase vidéo: 0-33%
+            progress = (bytes_downloaded / total_size) * 33 if total_size > 0 else 0
+        elif self.current_phase == "audio":
+            # Phase audio: 33-66%
+            progress = 33 + ((bytes_downloaded / total_size) * 33) if total_size > 0 else 33
+        else:
+            # Défaut: utiliser la progression brute
+            progress = (bytes_downloaded / total_size) * 100 if total_size > 0 else 0
+        
+        # Appeler le callback avec la progression
+        self.phase_progress_callback(progress, 100)
     
     def _update_status(self, status_callback: Optional[Callable], message: str):
         """Appelle le callback de statut si défini"""
@@ -230,17 +251,15 @@ class Downloader:
         stream,
         output_dir: Path,
         filename: str,
-        progress_callback: Optional[Callable],
         stream_type: str = "vidéo"
     ) -> Optional[str]:
         """
-        Télécharge un flux (vidéo ou audio) avec callback de progression
+        Télécharge un flux (vidéo ou audio)
         
         Args:
             stream: Objet stream pytubefix
             output_dir: Répertoire de sortie
             filename: Nom du fichier de sortie
-            progress_callback: Callback pour la progression
             stream_type: Type de stream ("vidéo" ou "audio") pour le logging
             
         Returns:
@@ -258,10 +277,6 @@ class Downloader:
                 logger.error(f"Flux {stream_type} non téléchargé (stream.download() retourna None)")
                 return None
             
-            # Callback final quand complète
-            if progress_callback and stream.filesize > 0:
-                progress_callback(stream.filesize, stream.filesize)
-            
             logger.info(f"Flux {stream_type} téléchargé: {downloaded_path}")
             return downloaded_path
             
@@ -274,8 +289,7 @@ class Downloader:
         video_path: str,
         audio_path: str,
         output_dir: Path,
-        title: str,
-        progress_callback: Optional[Callable] = None
+        title: str
     ) -> Optional[str]:
         """
         Fusionne vidéo et audio avec FFmpeg (multiplateforme via imageio-ffmpeg)
@@ -285,7 +299,6 @@ class Downloader:
             audio_path: Chemin du fichier audio
             output_dir: Répertoire de sortie
             title: Titre pour le nom du fichier final
-            progress_callback: Callback pour tracker la progression de fusion (0-100%)
             
         Returns:
             Chemin du fichier fusionné ou None si erreur
@@ -323,7 +336,7 @@ class Downloader:
             # Exécuter FFmpeg
             logger.info("Fusion vidéo et audio avec FFmpeg...")
             
-            # Simuler la progression de fusion tous les 200ms
+            # Utiliser Popen pour tracker la progression
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
@@ -333,22 +346,21 @@ class Downloader:
             )
             
             # Tracker la progression pendant la fusion
-            merge_start_time = time.time()
-            progress_step = 0
-            max_steps = 50  # 50 steps pour arriver à 100%
+            merge_progress = 66  # Commence à 66%
+            progress_step = 1
+            max_steps = 34  # Pour arriver à 100%
             
             while process.poll() is None:
-                if progress_callback and progress_step < max_steps:
-                    # Incrementer progressivement (0-100%)
-                    merge_progress = (progress_step / max_steps) * 100
-                    progress_callback(merge_progress)
+                if self.phase_progress_callback and progress_step < max_steps:
+                    merge_progress = 66 + progress_step
+                    self.phase_progress_callback(merge_progress, 100)
                     progress_step += 1
                 
-                time.sleep(0.1)  # Mettre à jour tous les 100ms
+                time.sleep(0.05)  # Mettre à jour tous les 50ms pour une animation fluide
             
             # Assurer que la progression atteint 100%
-            if progress_callback:
-                progress_callback(100)
+            if self.phase_progress_callback:
+                self.phase_progress_callback(100, 100)
             
             # Vérifier le résultat
             returncode = process.returncode
