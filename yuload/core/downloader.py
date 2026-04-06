@@ -5,6 +5,7 @@ import subprocess
 from pathlib import Path
 from typing import Callable, Optional
 import threading
+import time
 
 from ..utils.logger import setup_logger
 from ..utils.config import Config
@@ -115,11 +116,17 @@ class Downloader:
             if not video_stream:
                 raise ValueError(f"Impossible de trouver un stream pour la qualité {quality}")
             
+            # Wrapper pour convertir progression 0-33%
+            def video_progress_wrapper(current, total):
+                progress_ratio = (current / total) * 33 if total > 0 else 0
+                if progress_callback:
+                    progress_callback(progress_ratio, 100)
+            
             video_file = self._download_stream(
                 video_stream,
-                temp_dir,  # Utiliser TEMP_DIR pour les fichiers temporaires
+                temp_dir,
                 f"{safe_title}_video.mp4",
-                progress_callback,
+                video_progress_wrapper,
                 "vidéo"
             )
             
@@ -136,11 +143,17 @@ class Downloader:
             if not audio_stream:
                 raise Exception("Impossible de trouver un flux audio")
             
+            # Wrapper pour convertir progression 33-66%
+            def audio_progress_wrapper(current, total):
+                progress_ratio = 33 + ((current / total) * 33) if total > 0 else 33
+                if progress_callback:
+                    progress_callback(progress_ratio, 100)
+            
             audio_file = self._download_stream(
                 audio_stream,
-                temp_dir,  # Utiliser TEMP_DIR pour les fichiers temporaires
+                temp_dir,
                 f"{safe_title}_audio.mp4",
-                progress_callback,
+                audio_progress_wrapper,
                 "audio"
             )
             
@@ -153,11 +166,18 @@ class Downloader:
             self._update_status(status_callback, "Finalisation de la conversion vidéo...")
             logger.info("Fusion vidéo et audio avec FFmpeg")
             
+            # Wrapper pour convertir progression 66-100% pendant fusion
+            def merge_progress_wrapper(progress_pct):
+                merge_progress = 66 + (progress_pct * 0.34)  # 66% à 100%
+                if progress_callback:
+                    progress_callback(merge_progress, 100)
+            
             final_file = self._merge_with_ffmpeg(
                 video_file,
                 audio_file,
-                output_dir,  # Fichier final dans output_dir
-                safe_title
+                output_dir,
+                safe_title,
+                merge_progress_wrapper
             )
             
             if not final_file:
@@ -173,7 +193,11 @@ class Downloader:
                     safe_title
                 )
             
-            # Succès - nettoyer les fichiers temporaires et appeler le callback
+            # Succès - set to 100%
+            if progress_callback:
+                progress_callback(100, 100)
+            
+            # Nettoyer les fichiers temporaires et appeler le callback
             self._cleanup_temp_files()
             logger.info(f"Téléchargement complété: {final_file}")
             
@@ -250,7 +274,8 @@ class Downloader:
         video_path: str,
         audio_path: str,
         output_dir: Path,
-        title: str
+        title: str,
+        progress_callback: Optional[Callable] = None
     ) -> Optional[str]:
         """
         Fusionne vidéo et audio avec FFmpeg (multiplateforme via imageio-ffmpeg)
@@ -260,6 +285,7 @@ class Downloader:
             audio_path: Chemin du fichier audio
             output_dir: Répertoire de sortie
             title: Titre pour le nom du fichier final
+            progress_callback: Callback pour tracker la progression de fusion (0-100%)
             
         Returns:
             Chemin du fichier fusionné ou None si erreur
@@ -296,20 +322,44 @@ class Downloader:
             
             # Exécuter FFmpeg
             logger.info("Fusion vidéo et audio avec FFmpeg...")
-            result = subprocess.run(
+            
+            # Simuler la progression de fusion tous les 200ms
+            process = subprocess.Popen(
                 cmd,
-                check=True,
-                capture_output=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 text=True,
                 creationflags=creationflags
             )
             
-            logger.info(f"Fusion complétée: {output_file}")
-            return str(output_file)
+            # Tracker la progression pendant la fusion
+            merge_start_time = time.time()
+            progress_step = 0
+            max_steps = 50  # 50 steps pour arriver à 100%
             
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Erreur FFmpeg: {e.stderr}")
-            return None
+            while process.poll() is None:
+                if progress_callback and progress_step < max_steps:
+                    # Incrementer progressivement (0-100%)
+                    merge_progress = (progress_step / max_steps) * 100
+                    progress_callback(merge_progress)
+                    progress_step += 1
+                
+                time.sleep(0.1)  # Mettre à jour tous les 100ms
+            
+            # Assurer que la progression atteint 100%
+            if progress_callback:
+                progress_callback(100)
+            
+            # Vérifier le résultat
+            returncode = process.returncode
+            if returncode == 0:
+                logger.info(f"Fusion complétée: {output_file}")
+                return str(output_file)
+            else:
+                _, stderr = process.communicate()
+                logger.error(f"Erreur FFmpeg (code {returncode}): {stderr}")
+                return None
+            
         except Exception as e:
             logger.error(f"Erreur lors de la fusion: {e}")
             return None
