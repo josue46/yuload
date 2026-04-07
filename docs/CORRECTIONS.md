@@ -1,15 +1,15 @@
 # Corrections et Améliorations du Code
 
-## 🔧 Problème Initial
+## Problème Initial
 **Erreur:** `FileNotFoundError: [Errno 2] No such file or directory: '/home/luis/.yuload/logs/yuload_20260406.log'`
 
 **Cause:** Le répertoire `/home/luis/.yuload/logs/` n'existait pas quand `setup_logger()` essayait de créer le fichier log au niveau du module.
 
 ---
 
-## ✅ Solution Appliquée
+## Solution Appliquée
 
-### 1. **yuload/utils/logger.py** - Création automatique des répertoires
+### 1. yuload/utils/logger.py - Création automatique des répertoires
 
 ```python
 # Créer le répertoire des logs s'il n'existe pas
@@ -22,7 +22,7 @@ Config.LOG_DIR.mkdir(parents=True, exist_ok=True)
 - `exist_ok=True` : Ne lève pas d'erreur si le répertoire existe déjà
 - **Importance:** Cela assure que le répertoire existe AVANT que le FileHandler ne tente d'écrire
 
-### 2. **Éviter les handlers dupliqués**
+### 2. Éviter les handlers dupliqués
 
 ```python
 # Éviter les handlers dupliqués si la fonction est appelée plusieurs fois
@@ -37,11 +37,11 @@ if logger.handlers:
 
 ---
 
-## 💾 Améliorations Apportées
+## Améliorations Apportées
 
 ### yuload/utils/config.py
 **Commentaires détaillés en français** expliquant chaque section :
-- `# ======================== RÉPERTOIRES DE BASE ========================` - Organise visuellement
+- `# Répertoires de base` - Organise visuellement
 - Explique le rôle de chaque répertoire
 - Documente chaque paramètre de configuration
 
@@ -79,18 +79,18 @@ self._client: Optional[httpx.Client] = None
 
 ---
 
-## 🎯 Résumé des Points Clés
+## Résumé des Points Clés
 
 | Problème | Solution | Bénéfice |
 |----------|----------|----------|
-| Repertoires manquants | Créer les répertoires dans `setup_logger()` | Application démarre correctement |
-| Handlers dupliqués | Vérifier `logger.handlers` | Pas de logs doublés |
-| Imports inutiles | Supprimer `urllib.parse` | Code plus léger et clair |
-| Code peu documenté | Commentaires français detaillés | Meilleure compréhension |
+| Répertoires manquants | Créer les répertoires dans setup_logger() | Application démarre correctement |
+| Handlers dupliqués | Vérifier logger.handlers | Pas de logs doublés |
+| Imports inutiles | Supprimer urllib.parse | Code plus léger et clair |
+| Code peu documenté | Commentaires français détaillés | Meilleure compréhension |
 
 ---
 
-## 📝 Lignes Supprimées (Inutiles)
+## Lignes Supprimées (Inutiles)
 
 ### Dans validators.py
 ```python
@@ -98,19 +98,17 @@ self._client: Optional[httpx.Client] = None
 from urllib.parse import urlparse
 ```
 
-**Raison:** Cette fonction n'était pas appelée dans le code
+**Raison:** Cette fonction n'était pas appelée dans le code  
 **Impact:** Réduit les dépendances du module
 
 ---
 
-## ✨ Résultat
+## Résultat
 
 L'application démarre maintenant sans erreur :
-```
-✓ Répertoires créés automatiquement
-✓ Logger configuré correctement
-✓ Fichiers de log générés sans problème
-✓ Tous les commentaires en français
-```
+- Répertoires créés automatiquement
+- Logger configuré correctement
+- Fichiers de log générés sans problème
+- Tous les commentaires en français
 
-Le répertoire `/home/luis/.yuload/logs/yuload_20260406.log` est créé automatiquement au démarrage. ✅
+Le répertoire `/home/luis/.yuload/logs/yuload_20260406.log` est créé automatiquement au démarrage.

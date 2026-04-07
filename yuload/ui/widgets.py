@@ -2,7 +2,7 @@
 
 import tkinter as tk
 from tkinter import ttk
-from typing import Callable, Optional
+from typing import Callable
 from pathlib import Path
 from PIL import Image, ImageTk
 from .styles import Colors, StyleManager

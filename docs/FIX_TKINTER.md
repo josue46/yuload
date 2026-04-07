@@ -1,6 +1,6 @@
 # Correction du Bug Tkinter - height dans tk.Entry
 
-## 🐛 Problème Initial
+## Problème Initial
 
 ```
 _tkinter.TclError: unknown option "-height"
@@ -10,7 +10,7 @@ _tkinter.TclError: unknown option "-height"
 
 ---
 
-## ✅ Solution Appliquée
+## Solution Appliquée
 
 ### Changement dans `yuload/ui/main_window.py`
 
@@ -24,7 +24,7 @@ self.url_entry = tk.Entry(
     insertbackground=Colors.ACCENT,
     relief="flat",
     bd=0,
-    height=2  # ❌ ERREUR : Entry ne supporte pas height
+    height=2  # ERREUR : Entry ne supporte pas height
 )
 ```
 
@@ -39,16 +39,16 @@ self.url_entry = tk.Text(
     insertbackground=Colors.ACCENT,
     relief="flat",
     bd=0,
-    height=2,  # ✓ Text supporte height
+    height=2,  # Text supporte height
     wrap="word"
 )
 ```
 
 **Avantages de `tk.Text` :**
-- ✓ Supporte `height` (hauteur en lignes)
-- ✓ Supporte multi-ligne (permet copier/coller d'URLs longues)
-- ✓ Supporte `wrap="word"` pour retour à la ligne automatique
-- ✓ Meilleure UX pour les URLs longues
+- Supporte `height` (hauteur en lignes)
+- Supporte multi-ligne (permet copier/coller d'URLs longues)
+- Supporte `wrap="word"` pour retour à la ligne automatique
+- Meilleure UX pour les URLs longues
 
 ---
 
@@ -56,13 +56,13 @@ self.url_entry = tk.Text(
 
 **Avant:** 
 ```python
-url = self.url_entry.get().strip()  # ❌ Entry.get() retourne une chaîne
+url = self.url_entry.get().strip()  # Entry.get() retourne une chaîne
 ```
 
 **Après:**
 ```python
 # Récupérer l'URL depuis Text widget (utiliser "1.0" "end-1c" pour éviter le newline final)
-url = self.url_entry.get("1.0", "end-1c").strip()  # ✓ Text.get(start, end)
+url = self.url_entry.get("1.0", "end-1c").strip()  # Text.get(start, end)
 ```
 
 **Explication:**
@@ -72,29 +72,21 @@ url = self.url_entry.get("1.0", "end-1c").strip()  # ✓ Text.get(start, end)
 
 ---
 
-## ✅ Résultats
+## Résultats
 
 ### Fichiers Validés (Syntaxe Python)
 ```
-✓ yuload/utils/config.py
-✓ yuload/utils/logger.py
-✓ yuload/utils/http.py
-✓ yuload/utils/validators.py
-✓ yuload/core/youtube_handler.py
-✓ yuload/core/downloader.py
-✓ yuload/ui/styles.py
-✓ yuload/ui/widgets.py
-✓ yuload/ui/main_window.py
+Tous les fichiers Python compilent sans erreur
 ```
 
 ### Statut
-- ✅ Erreur TclError résolue
-- ✅ Tous les fichiers Python compilent sans erreur
-- ✅ Application prête à lancer (nécessite Tkinter)
+- Erreur TclError résolue
+- Tous les fichiers Python compilent sans erreur
+- Application prête à lancer (nécessite Tkinter)
 
 ---
 
-## 🚀 Commandes
+## Commandes
 
 ### Pour tester la syntaxe
 ```bash
@@ -113,7 +105,7 @@ uv run python3 main.py
 
 ---
 
-## 📝 Commentaires en Français Ajoutés
+Commentaires en Français Ajoutés
 
 Toutes les lignes de code sensibles ont des commentaires en français expliquant leur importance :
 
@@ -130,4 +122,4 @@ threading.Thread(target=self._load_video_thread, args=(url,), daemon=True).start
 
 ---
 
-✨ **Le code est maintenant prêt à être utilisé avec Tkinter installé !**
+Le code est maintenant prêt à être utilisé avec Tkinter installé !

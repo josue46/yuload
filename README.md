@@ -1,210 +1,168 @@
-# Yuload - YouTube Video Downloader
+# Yuload - Téléchargeur YouTube
 
-A modern, professional YouTube video downloader with a sleek GUI built with Tkinter. Download videos in multiple qualities, with optional subtitle support, all from an elegant interface.
+Télécharger vos vidéos YouTube préférées en haute qualité, avec audio parfaitement synchronisé.
 
-## Features
+Créateur: Josué Luis  
+Organisation: Walborn
 
-- **Download YouTube Videos** - Download any public YouTube video with a simple URL paste
-- **Multiple Quality Options** - Choose from all available video qualities (1080p, 720p, 480p, 360p, 144p, etc.)
-- **Audio Integration** - Automatic video and audio merging for complete download
-- **Subtitle Support** - Download and include video subtitles in multiple languages
-- **Progress Tracking** - Animated progress bar with real-time download statistics
-- **Modern UI** - Professional, modern interface with dark theme and smooth animations
-- **Error Handling** - Comprehensive error handling with user-friendly messages
-- **Easy Access** - Quick access to downloaded files from the application
+## Qu'est-ce que Yuload ?
 
-## Architecture
-
-The application follows a modular, scalable architecture:
-
-```
-yuload/
-├── core/                      # Business logic
-│   ├── youtube_handler.py    # YouTube API interactions
-│   └── downloader.py         # Download management
-├── ui/                        # User Interface
-│   ├── main_window.py        # Main application window
-│   ├── widgets.py            # Custom UI components
-│   └── styles.py             # Theme and styling
-└── utils/                     # Utilities
-    ├── config.py             # Configuration management
-    ├── logger.py             # Logging setup
-    └── validators.py         # Input validation
-```
-
-## Requirements
-
-- Python 3.9+ (required by pytubefix)
-- Tkinter (usually included with Python)
-- FFmpeg (for audio merging - optional, falls back to video-only if not available)
+Yuload est une application simple et intuitive qui vous permet de télécharger des vidéos YouTube en quelques clics. Contrairement aux autres téléchargeurs, Yuload télécharge automatiquement la vidéo ET l'audio séparément, puis les fusionne pour obtenir un fichier MP4 complet avec le son intégré.
 
 ## Installation
 
-### 1. Clone or Download the Project
+### Prérequis
+
+- Python 3.9 ou supérieur
+- Tkinter (inclus avec Python)
+- FFmpeg (pour la fusion audio/vidéo - optionnel mais recommandé)
+
+### Étape 1 : Télécharger le projet
+
 ```bash
-cd /path/to/yuload
+cd /home/luis/Projects/yuload
 ```
 
-### 2. Create Virtual Environment
+### Étape 2 : Créer un environnement virtuel
+
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+source .venv/bin/activate
 ```
 
-### 3. Install Dependencies
+### Étape 3 : Installer les dépendances
+
 ```bash
 pip install -r requirements.txt
 ```
 
-Or with poetry:
+Ou avec uv (plus rapide) :
+
 ```bash
-poetry install
+uv sync
 ```
 
-### 4. Install FFmpeg (Optional but Recommended)
+### Étape 4 : Installer FFmpeg (recommandé)
 
-**Ubuntu/Debian:**
+Ubuntu/Debian :
 ```bash
 sudo apt-get install ffmpeg
 ```
 
-**macOS:**
+macOS :
 ```bash
 brew install ffmpeg
 ```
 
-**Windows:**
-Download from [ffmpeg.org](https://ffmpeg.org/download.html) and add to PATH
+Windows :
+Téléchargez depuis ffmpeg.org et ajoutez le chemin à votre PATH
 
-## Usage
+## Utilisation
 
-### Start the Application
+### Lancer l'application
+
 ```bash
 python main.py
 ```
 
-### How to Use
-1. **Paste YouTube URL** - Copy any YouTube video URL and paste it in the URL field
-2. **Load Video** - Click "Load Video" to fetch video information and available qualities
-3. **Select Quality** - Choose your preferred video quality
-4. **Subtitle Options** - Optionally select subtitles if available
-5. **Download** - Click "Download Video" and select your preferred folder
-6. **Access Downloads** - Click "📁 Open Folder" to quickly access downloaded files
+Ou avec uv :
 
-## Configuration
-
-Configuration can be modified in `yuload/utils/config.py`:
-
-- **Default Download Location**: `~/.yuload/downloads`
-- **Window Size**: `900x700` (minimum `600x400`)
-- **Theme Colors**: Modern dark theme with accent colors
-- **Maximum Retries**: 3
-- **Chunk Size**: 1MB
-
-## Key Components
-
-### YouTubeHandler
-Manages all interactions with YouTube:
-- Video information retrieval
-- Stream availability checking
-- Subtitle/caption management
-
-### Downloader
-Handles the download process:
-- Multi-threaded downloads
-- Progress tracking
-- Video/audio merging
-- Subtitle downloading
-
-### Main UI
-Professional interface featuring:
-- URL input with validation
-- Video information display
-- Quality selector with file size info
-- Subtitle selector
-- Animated progress bar
-- Status messages
-- Real-time feedback
-
-## Design Features
-
-- **Modern Dark Theme** - Easy on the eyes with professional colors
-- **Smooth Animations** - Animated progress bar and hover effects
-- **Responsive Layout** - Adapts to window resizing
-- **Professional Buttons** - Custom modern buttons with hover states
-- **Clear Information** - Video metadata clearly displayed
-- **Intuitive Controls** - Logical workflow and clear visual hierarchy
-
-## Troubleshooting
-
-### "Invalid YouTube URL"
-- Ensure you're using a valid YouTube URL
-- URLs should start with `youtube.com` or `youtu.be`
-
-### "Cannot find streams"
-- Video might be age-restricted or unavailable
-- Check your internet connection
-- Try a different video
-
-### "Download fails at merge"
-- FFmpeg is not installed (optional - app falls back to video-only)
-- Install FFmpeg for full functionality
-
-### Progress bar not updating
-- Normal for large files - progress is updated in 1MB chunks
-- Download is still in progress in the background
-
-## Logging
-
-Logs are saved to `~/.yuload/logs/` with:
-- Daily log files
-- 10MB file rotation
-- Detailed error information
-- Debug information for troubleshooting
-
-## Development
-
-### Code Structure
-- **Modular Design**: Each component has a single responsibility
-- **Error Handling**: Comprehensive try-catch with proper logging
-- **Type Hints**: Full type annotations for better IDE support
-- **Documentation**: Detailed docstrings for all functions
-
-### Running in Development Mode
 ```bash
-source .venv/bin/activate
-python main.py
+uv run python main.py
 ```
 
-### Extending the Application
-- Add new quality filters in `youtube_handler.py`
-- Create new UI widgets by extending `widgets.py`
-- Add configuration options in `config.py`
+### Comment télécharger une vidéo
 
-## License
+1. Coller l'URL - Copiez l'adresse d'une vidéo YouTube et collez-la dans le champ URL
+2. Charger - Cliquez sur le bouton "Charger la vidéo"
+3. Attendre - Un spinner animé vous indique que l'application récupère les informations
+4. Sélectionner la qualité - Choisissez la résolution de votre vidéo (1080p, 720p, 480p, etc.)
+5. Ajouter des sous-titres - Si vous le souhaitez, sélectionnez la langue des sous-titres
+6. Télécharger - Cliquez sur "Télécharger la vidéo" et choisissez le dossier de destination
+7. Patienter - Observez la barre de progression pendant le téléchargement
 
-This project is provided as-is for personal use.
+### Où sont mes vidéos ?
 
-## Disclaimer
+Par défaut, les vidéos téléchargées sont sauvegardées dans le dossier :
 
-Yuload is designed for downloading videos you have permission to download. Respect copyright laws and YouTube's Terms of Service. The authors are not responsible for misuse of this tool.
+```
+~/.yuload/downloads
+```
 
-## Contributing
+Vous pouvez cliquer sur "Ouvrir le dossier" pour accéder directement à vos téléchargements.
 
-Suggestions and improvements are welcome! Feel free to:
-- Report bugs
-- Suggest features
-- Improve documentation
-- Optimize code
+## Fonctionnalités principales
 
-## Support
+- Téléchargement d'URL YouTube - Copiez-collez simplement l'URL
+- Multiples qualités - Choisissez votre résolution préférée
+- Fusion audio automatique - Chaque vidéo inclut le son, fusionné dynamiquement
+- Sous-titres - Télécharger les sous-titres en plusieurs langues
+- Barre de progression animée - Suivez l'avancement du téléchargement en temps réel
+- Interface moderne - Design sombre et professionnel
+- Fenêtre d'accès rapide - Accédez directement à vos fichiers depuis l'application
 
-For issues or questions:
-1. Check the troubleshooting section
-2. Review logs in `~/.yuload/logs/`
-3. Verify FFmpeg installation
-4. Check your internet connection
+## Résolution des problèmes
+
+### "URL YouTube invalide"
+
+Assurez-vous que :
+- L'URL commence par youtube.com ou youtu.be
+- L'URL est complète et valide
+- La vidéo n'est pas supprimée ou rendue privée
+
+### "Aucun flux disponible"
+
+Cela signifie que la vidéo n'était pas disponible pour le téléchargement. Essayez :
+- Vérifier votre connexion Internet
+- Tenter avec une autre vidéo
+- Vérifier votre VPN ou proxy
+
+### "La barre de progression ne s'anime pas"
+
+C'est normal pour les fichiers volumineux. L'application est en arrière-plan et se met à jour par portions de 1 MB. Le téléchargement est toujours en cours.
+
+### "Le téléchargement résulte en vidéo sans son"
+
+Cela signifie que FFmpeg n'est pas installé. Installez FFmpeg pour que Yuload fusionne correctement audio et vidéo.
+
+## Logs et diagnostics
+
+Si vous rencontrez des problèmes, les fichiers de log se trouvent ici :
+
+```
+~/.yuload/logs/
+```
+
+Ces fichiers contiennent des informations détaillées qui peuvent aider à diagnostiquer les problèmes.
+
+## Conseils d'utilisation
+
+- Qualité optimale : Choisissez 1080p ou 720p pour le meilleur rapport qualité/taille
+- Téléchargement rapide : Les vidéos plus courtes se téléchargent plus vite
+- Espace disque : Assurez-vous d'avoir suffisamment d'espace libre pour vos téléchargements
+- Restriction de droits d'auteur : Téléchargez uniquement les vidéos pour lesquelles vous avez le droit de le faire
+
+## Soutien
+
+Si vous avez des questions ou rencontrez des problèmes :
+
+1. Consultez la section "Résolution des problèmes"
+2. Vérifiez les fichiers de log dans ~/.yuload/logs/
+3. Assurez-vous que FFmpeg est correctement installé
+4. Vérifiez votre connexion Internet
+
+## Documentation pour les contributeurs
+
+Pour les informations sur l'architecture, les fonctionnalités, le développement et comment contribuer au projet, consultez le fichier CONTRIBUTING.md dans le dossier docs/.
+
+## Licence
+
+Ce projet est fourni à titre gratuit pour usage personnel.
+
+## Avertissement
+
+Yuload est destiné au téléchargement de vidéos pour lesquelles vous avez l'autorisation. Respectez les lois sur le droit d'auteur et les conditions d'utilisation de YouTube. Les auteurs ne sont pas responsables de l'utilisation abusive de cet outil.
 
 ---
 
-**Enjoy downloading videos with Yuload!**
+Profitez de Yuload et de vos téléchargements vidéo !

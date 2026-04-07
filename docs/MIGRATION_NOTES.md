@@ -40,18 +40,18 @@ python3 main.py
 
 ### 4. Avantages de httpx
 
-- ✓ API asynchrone (async/await support)
-- ✓ Plus rapide que requests
-- ✓ Meilleur support pour HTTP/2
-- ✓ Type hints complets
-- ✓ Meilleure gestion des ressources
+- API asynchrone (async/await support)
+- Plus rapide que requests
+- Meilleur support pour HTTP/2
+- Type hints complets
+- Meilleure gestion des ressources
 
 ### 5. Avantages de uv
 
-- ✓ Gestionnaire de dépendances ultra-rapide
-- ✓ Résolution de dépendances déterministe
-- ✓ Gestion automatique des versions Python
-- ✓ Lock file reproductible avec `uv.lock`
+- Gestionnaire de dépendances ultra-rapide
+- Résolution de dépendances déterministe
+- Gestion automatique des versions Python
+- Lock file reproductible avec `uv.lock`
 
 ## Migration complète
 
