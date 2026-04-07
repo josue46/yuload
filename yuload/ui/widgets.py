@@ -3,6 +3,8 @@
 import tkinter as tk
 from tkinter import ttk
 from typing import Callable, Optional
+from pathlib import Path
+from PIL import Image, ImageTk
 from .styles import Colors, StyleManager
 
 
@@ -134,59 +136,131 @@ class AnimatedProgressBar(tk.Canvas):
 
 
 class LoadingSpinner(tk.Canvas):
-    """Spinner de chargement animé avec couleur dynamique"""
+    """Animated loading spinner using GIF"""
     
-    def __init__(self, parent, size=30, color=Colors.ACCENT, **kwargs):
+    def __init__(self, parent, size=30, gif_path=None, **kwargs):
         """
-        Initialise le spinner de chargement
+        Initialize loading spinner
         
         Args:
-            parent: Widget parent
-            size: Taille du spinner en pixels
-            color: Couleur du spinner (bleu par défaut)
+            parent: Parent widget
+            size: Size of the spinner in pixels
+            gif_path: Path to the GIF file (optional)
         """
         super().__init__(parent, width=size, height=size, bg=Colors.PRIMARY, 
                         highlightthickness=0, **kwargs)
         
         self.size = size
-        self.color = color
         self.animation_frame = 0
         self.is_loading = False
         self.is_complete = False
+        self.frames = []
+        self.animation_id = None
+        self.keep_photo_reference = None  # Prevent garbage collection
+        
+        # Load GIF if provided
+        if gif_path is None:
+            # Try default path
+            gif_path = Path(__file__).parent.parent / "assets" / "spinner.gif"
+        
+        self.gif_path = Path(gif_path)
+        
+        if self.gif_path.exists():
+            self.load_gif()
+        else:
+            # Fallback: draw spinner if GIF not found
+            self.use_drawn_spinner = True
+    
+    def load_gif(self):
+        """Load all frames from the GIF"""
+        try:
+            pil_image = Image.open(self.gif_path)
+            self.frames = []
+            
+            # Extract all frames from the GIF
+            try:
+                while True:
+                    # Resize frame to fit the canvas size
+                    frame = pil_image.copy().convert('RGBA')
+                    frame = frame.resize((self.size, self.size), Image.Resampling.LANCZOS)
+                    photo_image = ImageTk.PhotoImage(frame)
+                    self.frames.append(photo_image)
+                    pil_image.seek(len(self.frames))
+            except EOFError:
+                # End of GIF animation
+                pass
+            
+            if self.frames:
+                self.use_drawn_spinner = False
+            else:
+                self.use_drawn_spinner = True
+                
+        except Exception as e:
+            print(f"Error loading GIF: {e}")
+            self.use_drawn_spinner = True
     
     def start_loading(self):
-        """Démarre l'animation de chargement en bleu"""
+        """Start the loading animation"""
         self.is_loading = True
         self.is_complete = False
-        self.color = Colors.ACCENT  # Bleu
-        self.animate()
+        self.animation_frame = 0
+        
+        if self.frames:
+            self.animate_gif()
+        else:
+            self.animate_drawn_spinner()
     
     def complete_loading(self):
-        """Marque comme chargement complété et change la couleur en vert"""
+        """Mark loading as complete and show checkmark"""
         self.is_loading = False
         self.is_complete = True
-        self.color = Colors.SUCCESS  # Vert
+        self.animation_frame = 0
+        
+        # Cancel any pending animation
+        if self.animation_id:
+            self.after_cancel(self.animation_id)
+            self.animation_id = None
+        
         self.draw_checkmark()
     
-    def animate(self):
-        """Anime le spinner"""
+    def animate_gif(self):
+        """Animate GIF frames"""
+        if not self.is_loading or not self.frames:
+            return
+        
+        # Display current frame
+        frame_image = self.frames[self.animation_frame]
+        self.keep_photo_reference = frame_image  # Keep reference
+        
+        self.delete("all")
+        self.create_image(self.size / 2, self.size / 2, image=frame_image, tags="spinner")
+        
+        # Move to next frame
+        self.animation_frame = (self.animation_frame + 1) % len(self.frames)
+        
+        # Schedule next frame
+        # Get the duration from GIF if available
+        delay = 100  # Default 100ms
+        self.animation_id = self.after(delay, self.animate_gif)
+    
+    def animate_drawn_spinner(self):
+        """Fallback: animate a drawn spinner"""
         if not self.is_loading:
             return
         
         self.draw_spinner()
         self.animation_frame = (self.animation_frame + 1) % 12
-        # Appeler la prochaine animation après 100ms
-        self.after(100, self.animate)
+        self.animation_id = self.after(100, self.animate_drawn_spinner)
     
     def draw_spinner(self):
-        """Dessine un spinner animé"""
+        """Draw a fallback spinner"""
         self.delete("all")
         
         center_x = self.size / 2
         center_y = self.size / 2
         radius = self.size / 3
         
-        # Dessiner 12 segments du spinner
+        # Draw 12 segments
         for i in range(12):
             angle = (i + self.animation_frame) * 30
             import math
@@ -195,26 +269,24 @@ class LoadingSpinner(tk.Canvas):
             x2 = center_x + radius * math.cos(math.radians(angle + 20))
             y2 = center_y + radius * math.sin(math.radians(angle + 20))
             
-            # Opacité dégradée pour l'effet de rotation
-            opacity = int(100 + (i * 20) % 155)
-            self.create_line(x1, y1, x2, y2, fill=self.color, width=3)
+            self.create_line(x1, y1, x2, y2, fill=Colors.ACCENT, width=2)
     
     def draw_checkmark(self):
-        """Dessine une coche verte"""
+        """Draw a green checkmark"""
         self.delete("all")
         
         center_x = self.size / 2
         center_y = self.size / 2
         radius = self.size / 3
         
-        # Cercle vert
+        # Green circle
         self.create_oval(
             center_x - radius, center_y - radius,
             center_x + radius, center_y + radius,
-            fill=self.color, outline=self.color
+            fill=Colors.SUCCESS, outline=Colors.SUCCESS
         )
         
-        # Coche blanche
+        # White checkmark
         self.create_line(
             center_x - radius/3, center_y,
             center_x - radius/6, center_y + radius/4,
