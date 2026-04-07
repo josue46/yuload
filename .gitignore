@@ -8,3 +8,13 @@ wheels/
 
 # Virtual environments
 .venv
+*.spec
+.vscode/
+
+# AppImage
+Yuload.AppDir/
+*.AppImage
+
+builds/
+
+script.sh

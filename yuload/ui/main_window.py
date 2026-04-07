@@ -226,7 +226,7 @@ class MainWindow(tk.Tk):
             draw = ImageDraw.Draw(img)
             draw.text((50, 100), "Y", fill='white')
             
-            photo = tk.PhotoImage(file="/dev/null")
+            photo = tk.PhotoImage(file="../assets/logo.ico")
             self.iconphoto(False, photo)
         except Exception:
             pass
