@@ -2,7 +2,7 @@
 
 Télécharger vos vidéos YouTube préférées en haute qualité, avec audio parfaitement synchronisé.
 
-Créateur: Josué Luis  
+Créateur: Josué Luis Martin Panzu
 Organisation: Walborn
 
 ## Qu'est-ce que Yuload ?
