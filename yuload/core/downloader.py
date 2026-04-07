@@ -73,7 +73,7 @@ class Downloader:
         
         # Enregistrer le callback global de progression avec pytubefix
         # Ce callback sera appelé pour chaque chunk de tous les streams
-        self.handler.youtube.register_on_progress_callback(self._on_pytubefix_progress)
+        self.handler.current_video.register_on_progress_callback(self._on_pytubefix_progress)
         
         # Démarrer le téléchargement dans un thread séparé (ne pas bloquer Tkinter)
         self.is_downloading = True

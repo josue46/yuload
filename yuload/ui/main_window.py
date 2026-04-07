@@ -1,8 +1,7 @@
 """Main Window for Yuload Application"""
 
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
-from typing import Optional
+from tkinter import filedialog, messagebox
 from pathlib import Path
 import threading
 
@@ -222,7 +221,6 @@ class MainWindow(tk.Tk):
         try:
             # Try to create a simple icon using PIL if available
             from PIL import Image, ImageDraw
-            from io import BytesIO
             
             img = Image.new('RGB', (256, 256), color=Config.ACCENT_COLOR[1:])
             draw = ImageDraw.Draw(img)
@@ -344,16 +342,29 @@ class MainWindow(tk.Tk):
         self.status_bar.show_message("Téléchargement en cours...", "info")
         self.progress_bar.set_progress(0)
         
+        # Create thread-safe wrappers for callbacks
+        def safe_progress_callback(current, total):
+            self.after(0, self._on_progress, current, total)
+        
+        def safe_status_callback(message):
+            self.after(0, self._on_status_update, message)
+        
+        def safe_completion_callback(filepath):
+            self.after(0, self._on_download_complete, filepath)
+        
+        def safe_error_callback(error_message):
+            self.after(0, self._on_download_error, error_message)
+        
         # Start download
         self.downloader.download_video(
             quality=self.selected_quality,
             output_path=output_folder,
             include_subtitle=include_subtitle,
             subtitle_code=subtitle_code,
-            progress_callback=self._on_progress,
-            completion_callback=self._on_download_complete,
-            error_callback=self._on_download_error,
-            status_callback=self._on_status_update
+            progress_callback=safe_progress_callback,
+            completion_callback=safe_completion_callback,
+            error_callback=safe_error_callback,
+            status_callback=safe_status_callback
         )
     
     def _on_cancel_click(self):
@@ -364,17 +375,34 @@ class MainWindow(tk.Tk):
     
     def _on_progress(self, current: int, total: int):
         """Handle progress update"""
-        if total > 0:
+        # Si current et total sont des pourcentages (0-100), utiliser directement
+        # Si ce sont des bytes, calculer le pourcentage
+        if total == 100:
+            # C'est déjà un pourcentage
+            progress = current
+        elif total > 0:
+            # C'est en bytes
             progress = (current / total) * 100
-            self.progress_bar.set_progress(progress)
-            
-            # Update progress label
+        else:
+            progress = 0
+        
+        # Limiter le pourcentage entre 0 et 100
+        progress = max(0, min(100, progress))
+        
+        self.progress_bar.set_progress(progress)
+        
+        # Update progress label
+        if total == 100:
+            # Affichage simple pour les pourcentages
+            self.progress_label.config(text=f"{int(progress)}%")
+        else:
+            # Affichage détaillé pour les bytes
             self.progress_label.config(
                 text=f"{int(progress)}% • {current/1024/1024:.1f}MB / {total/1024/1024:.1f}MB"
             )
-            
-            # Animate progress bar
-            self.progress_bar.draw_progress()
+        
+        # Animate progress bar
+        self.progress_bar.draw_progress()
     
     def _on_status_update(self, message: str):
         """Handle status update from downloader"""
