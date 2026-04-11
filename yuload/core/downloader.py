@@ -284,6 +284,8 @@ class Downloader:
             logger.error(f"Erreur lors du téléchargement {stream_type}: {e}")
             return None
     
+    # Dans downloader.py, méthode _merge_with_ffmpeg
+
     def _merge_with_ffmpeg(
         self,
         video_path: str,
@@ -303,40 +305,32 @@ class Downloader:
         Returns:
             Chemin du fichier fusionné ou None si erreur
         """
+
         output_file = output_dir / f"{title}.mp4"
         
         try:
-            # Importer FFmpeg via imageio-ffmpeg (multiplateforme)
-            try:
-                import imageio_ffmpeg as ffmpeg
-                ffmpeg_exe = ffmpeg.get_ffmpeg_exe()
-                logger.info(f"Utilisation de FFmpeg: {ffmpeg_exe}")
-            except (ImportError, RuntimeError) as e:
-                logger.error(f"Impossible de charger imageio-ffmpeg: {e}")
-                return None
-            
+            ffmpeg_exe = Config.get_ffmpeg_path()
+            logger.info(f"Utilisation de FFmpeg: {ffmpeg_exe}")
+
             # Construire la commande FFmpeg
-            # -c copy : copier les codecs sans réencodage (ultra rapide)
             cmd = [
                 ffmpeg_exe,
-                "-i", video_path,        # Fichier vidéo d'entrée
-                "-i", audio_path,        # Fichier audio d'entrée
-                "-c:v", "copy",          # Copier le codec vidéo
-                "-c:a", "aac",           # Codec audio (aac compatible)
-                "-shortest",             # Limiter à la durée la plus courte
-                str(output_file),        # Fichier de sortie
-                "-y"                     # Écraser si existe
+                "-i", video_path,
+                "-i", audio_path,
+                "-c:v", "copy",
+                "-c:a", "aac",
+                "-shortest",
+                str(output_file),
+                "-y"
             ]
-            
-            # Déterminer les flags selon le système pour masquer la fenêtre
+            # Détermine les flags selon le système pour masquer la fenêtre
             creationflags = 0
             if Config.IS_WINDOWS:
                 creationflags = subprocess.CREATE_NO_WINDOW
-            
-            # Exécuter FFmpeg
+    
             logger.info("Fusion vidéo et audio avec FFmpeg...")
             
-            # Utiliser Popen pour tracker la progression
+            # Utilisation de Popen pour tracker la progression
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
@@ -345,10 +339,10 @@ class Downloader:
                 creationflags=creationflags
             )
             
-            # Tracker la progression pendant la fusion
-            merge_progress = 66  # Commence à 66%
-            progress_step = 1
-            max_steps = 34  # Pour arriver à 100%
+            # Tracking de la progression pendant la fusion
+            merge_progress: int = 66
+            progress_step: int = 1
+            max_steps: int = 34
             
             while process.poll() is None:
                 if self.phase_progress_callback and progress_step < max_steps:
@@ -356,13 +350,13 @@ class Downloader:
                     self.phase_progress_callback(merge_progress, 100)
                     progress_step += 1
                 
-                time.sleep(0.05)  # Mettre à jour tous les 50ms pour une animation fluide
+                time.sleep(0.05)  # Mise à jour tous les 50ms pour une animation fluide
             
-            # Assurer que la progression atteint 100%
+            # S'assure que la progression atteint 100%
             if self.phase_progress_callback:
                 self.phase_progress_callback(100, 100)
             
-            # Vérifier le résultat
+            # Vérification du résultat
             returncode = process.returncode
             if returncode == 0:
                 logger.info(f"Fusion complétée: {output_file}")
@@ -375,6 +369,7 @@ class Downloader:
         except Exception as e:
             logger.error(f"Erreur lors de la fusion: {e}")
             return None
+   
     
     def _download_subtitle(
         self,

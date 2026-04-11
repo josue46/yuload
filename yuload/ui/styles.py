@@ -1,14 +1,14 @@
-"""Styles and themes for Yuload UI"""
+"""Themes et styles pour l'application"""
 
 from ..utils.config import Config
 
 
 class StyleManager:
-    """Manage application styles and colors"""
+    """Gère les styles et couleurs de l'application"""
     
     @staticmethod
     def default_font(size=Config.FONT_SIZE_LABEL, bold=False, family=None):
-        """Get default font tuple"""
+        """Obtient le tuple de la police par défaut"""
         if family is None:
             family = Config.FONT_FAMILY
         weight = "bold" if bold else "normal"
@@ -16,7 +16,7 @@ class StyleManager:
     
     @staticmethod
     def configure_styles(root):
-        """Configure ttk styles"""
+        """Configurer les styles ttk"""
         from tkinter import ttk
         
         style = ttk.Style()

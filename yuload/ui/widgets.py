@@ -5,7 +5,9 @@ from tkinter import ttk
 from typing import Callable
 from pathlib import Path
 from PIL import Image, ImageTk
+
 from .styles import Colors, StyleManager
+from ..utils.config import Config
 
 
 class ModernButton(tk.Canvas):
@@ -158,17 +160,15 @@ class LoadingSpinner(tk.Canvas):
         self.animation_id = None
         self.keep_photo_reference = None  # Prevent garbage collection
         
-        # Load GIF if provided
         if gif_path is None:
-            # Try default path
-            gif_path = Path(__file__).parent.parent / "assets" / "spinner.gif"
-        
-        self.gif_path = Path(gif_path)
-        
+            self.gif_path = Config.get_resource_path("yuload/assets/spinner.gif")
+        else:
+            self.gif_path = Path(gif_path)
+
+        # On vérifie si le fichier existe réellement
         if self.gif_path.exists():
             self.load_gif()
         else:
-            # Fallback: draw spinner if GIF not found
             self.use_drawn_spinner = True
     
     def load_gif(self):
@@ -195,8 +195,7 @@ class LoadingSpinner(tk.Canvas):
             else:
                 self.use_drawn_spinner = True
                 
-        except Exception as e:
-            print(f"Error loading GIF: {e}")
+        except Exception:
             self.use_drawn_spinner = True
     
     def start_loading(self):
